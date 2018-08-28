@@ -1,0 +1,6 @@
+spring:
+  # =====================
+  # Spring-Profiles 配置
+  # =====================
+  profiles:
+    active: dev

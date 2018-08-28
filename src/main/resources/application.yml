@@ -1,0 +1,48 @@
+spring:
+    # =====================
+  # Spring-Profiles 配置
+  # =====================
+  profiles:
+    active: dev
+  # ====================
+  # Spring-JMX 配置
+  # ====================
+  jmx:
+    enabled: false
+
+  # =======================
+  # Spring-Data-JPA 配置
+  # =======================
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: none
+    open-in-view: true
+
+  # =======================
+  # Spring-Datasource 配置
+  # =======================
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/seance?allowMultiQueries=true&useUnicode=true&characterEncoding=utf-8&useSSL=false
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.jdbc.Driver
+
+# ==============
+# Generator 配置
+# ==============
+generator:
+  #修改为自己姓名
+  author: seance
+  #输出文件地址修改为自己本机目录
+  outDir: D:\generate
+  #数据库表名
+  genTable: integral
+  #包名
+  comPackage: com.seance.www
+  mapperPackage: com.seance.www.dao.mapper
+  dtoPackage: com.seance.www.dao.dto
+  modelPackage: com.seance.www.dao.model
+  servicePackage: com.seance.www.service
+  implPackage: com.seance.www.service.impl
+  controllerPackage: com.seance.www.cms.controller

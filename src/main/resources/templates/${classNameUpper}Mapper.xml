@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<#assign prefix_key = '#'>
+<#assign prefix_key_orderby = '$'>
+<mapper namespace="${mapperPackage}.${classNameUpper}Mapper">
+
+  <!-- =========================================================== -->
+  <!-- 定义resultMap -->
+  <!-- =========================================================== -->
+  <resultMap id="${className}Map" type="${modelPackage}.${classNameUpper}">
+    <#list columns as column>
+    <result column="${column.columnName}" property="${column.columnNameCamel}" jdbcType="${column.jdbcType}"/>
+    </#list>
+  </resultMap>
+  <resultMap id="${className}DtoMap" type="${dtoPackage}.${classNameUpper}Dto">
+  <#list columns as column>
+  <result column="${column.columnName}" property="${column.columnNameCamel}" jdbcType="${column.jdbcType}"/>
+  </#list>
+  </resultMap>
+
+  <!-- 通用查询结果列 -->
+  <sql id="Base_Column_List">
+  <#list columns as column>
+  <#if column_index != 0>,</#if>${tableAlias}.${column.columnName}
+  </#list>
+  </sql>
+
+  <!-- 查询条件 -->
+  <sql id="where_fragement">
+  where 1=1
+    <#list columns as column>
+      <#if column.jdbcType == 'DATE' || column.jdbcType == 'TIMESTAMP' || column.jdbcType == 'INTEGER'>
+      <if test="${column.columnNameCamel} != null ">
+        <![CDATA[ and ${tableAlias}.${column.columnName}  = ${prefix_key}{${column.columnNameCamel}} ]]>
+      </if>
+      <#elseif column.jdbcType == 'VARCHAR'>
+      <if test="${column.columnNameCamel} != null and ${column.columnNameCamel} !='' ">
+        <![CDATA[ and ${tableAlias}.${column.columnName} LIKE CONCAT('%',${prefix_key}{${column.columnNameCamel}} ,'%')]]>
+      </if>
+      <#else>
+      <if test="${column.columnNameCamel} != null and ${column.columnNameCamel} !='' ">
+        <![CDATA[ and ${tableAlias}.${column.columnName}  = ${prefix_key}{${column.columnNameCamel}} ]]>
+      </if>
+      </#if>
+    </#list>
+  </sql>
+
+  <!-- 相等查询条件 -->
+  <sql id="where_fragement_equals">
+  where 1=1
+    <#list columns as column>
+   <#if column.jdbcType == 'DATE' || column.jdbcType == 'TIMESTAMP' || column.jdbcType == 'INTEGER'>
+    <if test="${column.columnNameCamel} != null ">
+      <![CDATA[ and ${tableAlias}.${column.columnName}  = ${prefix_key}{${column.columnNameCamel}} ]]>
+    </if>
+    <#else>
+    <if test="${column.columnNameCamel} != null and ${column.columnNameCamel} !='' ">
+      <![CDATA[ and ${tableAlias}.${column.columnName}  = ${prefix_key}{${column.columnNameCamel}} ]]>
+    </if>
+  </#if>
+  </#list>
+  </sql>
+
+  <!-- =========================================================== -->
+  <!-- Mapper中的基本增删改查方法                                                                                                                                                       -->
+  <!-- =========================================================== -->
+
+  <!-- 根据id查询 -->
+  <select id="getOneById" resultMap="${className}Map"  parameterType="Integer">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM ${tableName}
+    WHERE id = ${prefix_key}{id}
+  </select>
+
+  <!-- 根据Condition查询 -->
+  <select id="selectByPrimaryKey" resultMap="${className}Map">
+  SELECT
+  <include refid="Base_Column_List" />
+  FROM ${tableName} ${tableAlias}
+  <include refid="where_fragement_equals" />
+  </select>
+
+        <!-- 根据Condition查询 -->
+  <select id="getOne" resultMap="${className}DtoMap">
+  SELECT
+  <include refid="Base_Column_List" />
+  FROM ${tableName} ${tableAlias}
+  <include refid="where_fragement_equals" />
+  </select>
+
+  <!-- 查询list -->
+  <select id="queryListBySelective" resultMap="${className}Map">
+  SELECT
+  <include refid="Base_Column_List" />
+  FROM ${tableName} ${tableAlias}
+  <include refid="where_fragement" />
+  </select>
+
+        <!-- 查询list -->
+  <select id="queryList" resultMap="${className}DtoMap">
+  SELECT
+  <include refid="Base_Column_List" />
+  FROM ${tableName} ${tableAlias}
+  <include refid="where_fragement" />
+  </select>
+
+  <!-- 插入全字段 -->
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="${modelPackage}.${classNameUpper}">
+    INSERT INTO ${tableName} (
+        <include refid="Base_Column_List" />
+       )VALUES(
+        <#list columns as column>
+          <#if column_index != 0>,</#if>${prefix_key}{${column.columnNameCamel},jdbcType=${column.jdbcType}}
+      </#list>
+       )
+  </insert>
+
+  <!-- 插入非空字段 -->
+  <insert id="insertSelective"  useGeneratedKeys="true" keyProperty="id" parameterType="${modelPackage}.${classNameUpper}">
+  INSERT INTO ${tableName}
+  <trim prefix="(" suffix=")" suffixOverrides="," >
+    <#list columns as column>
+    <#if column.jdbcType == 'DATE' || column.jdbcType == 'TIMESTAMP' || column.jdbcType == 'INTEGER'>
+        <if test="${column.columnNameCamel} != null ">
+          <![CDATA[ ${column.columnName}, ]]>
+        </if>
+        <#else>
+        <if test="${column.columnNameCamel} != null and ${column.columnNameCamel} !='' ">
+          <![CDATA[ ${column.columnName}, ]]>
+        </if>
+      </#if>
+    </#list>
+  </trim>
+  <trim prefix="VALUES (" suffix=")" suffixOverrides="," >
+    <#list columns as column>
+    <#if column.jdbcType == 'DATE' || column.jdbcType == 'TIMESTAMP' || column.jdbcType == 'INTEGER'>
+      <if test="${column.columnNameCamel} != null ">
+        <![CDATA[ ${prefix_key}{${column.columnNameCamel},jdbcType=${column.jdbcType}}, ]]>
+      </if>
+      <#else>
+      <if test="${column.columnNameCamel} != null and ${column.columnNameCamel} !='' ">
+        <![CDATA[ ${prefix_key}{${column.columnNameCamel},jdbcType=${column.jdbcType}}, ]]>
+      </if>
+      </#if>
+    </#list>
+  </trim>
+  </insert>
+
+  <!-- 逻辑删除,根据主键设置active_flag ='0' -->
+  <update id="deleteByPrimaryKey" parameterType="${modelPackage}.${classNameUpper}">
+    UPDATE ${tableName}
+    SET state = '0'
+    ,update_by = ${prefix_key}{updateBy,jdbcType=INTEGER}
+    ,update_time = now()
+    WHERE id = ${prefix_key}{id}
+  </update>
+
+  <!-- 逻辑删除,根据主键batch设置active_flag ='0' -->
+  <update id="deleteByIds" parameterType="${dtoPackage}.${classNameUpper}Dto">
+    UPDATE ${tableName}
+    SET state = '0'
+    ,update_by = ${prefix_key}{updateBy,jdbcType=INTEGER}
+    ,update_time = now()
+    WHERE id IN
+    <foreach collection="ids" item="id" open="(" separator=","
+      close=")">
+      ${prefix_key}{id}
+    </foreach>
+  </update>
+
+  <!--  修改有值列  -->
+  <update id="updateByPrimaryKeySelective" parameterType="${modelPackage}.${classNameUpper}">
+    UPDATE ${tableName}
+    <set>
+        <#list columns as column>
+      <#if column.jdbcType == 'DATE' || column.jdbcType == 'TIMESTAMP' || column.jdbcType == 'INTEGER'>
+          <if test="${column.columnNameCamel} != null ">
+            <![CDATA[ ${column.columnName} = ${prefix_key}{${column.columnNameCamel}}, ]]>
+          </if>
+          <#else>
+          <if test="${column.columnNameCamel} != null and ${column.columnNameCamel} !='' ">
+            <![CDATA[ ${column.columnName} = ${prefix_key}{${column.columnNameCamel}}, ]]>
+          </if>
+          </#if>
+        </#list>
+    </set>
+    WHERE id = ${prefix_key}{id}
+  </update>
+
+  <!--  修改所有列  -->
+  <update id="updateByPrimaryKey" parameterType="${modelPackage}.${classNameUpper}">
+    UPDATE ${tableName}
+    <set>
+        <#list columns as column>
+          <#if column_index != 0 && column_index != 1 >,</#if><#if column_index != 0>${column.columnName} = ${prefix_key}{${column.columnNameCamel},jdbcType=${column.jdbcType}}</#if>
+        </#list>
+    </set>
+    WHERE id = ${prefix_key}{id}
+  </update>
+
+</mapper>
